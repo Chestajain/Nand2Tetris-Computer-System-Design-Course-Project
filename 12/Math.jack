@@ -1,0 +1,186 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/**
+ * A library of commonly used mathematical functions.
+ * All functions runs in O(n), where n is the number of bits used
+ * for representing a two's complement integer value (16 in the Hack computer).
+ * Note: Jack compilers implement multiplication and division
+ * using calls to OS functions in this class.
+ */
+class Math {
+    static Array powersOfTwo; // Stores 2^0, 2^1, ..., 2^15
+
+    /** Initializes the Math library. */
+    function void init() {
+        var int i, val;
+        let i = 0;
+        let val = 1;
+        let powersOfTwo = Array.new(16);
+
+        while (i < 16) {
+            let powersOfTwo[i] = val;
+            let val = val + val;
+            let i = i + 1;
+        }
+        return;
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+        if (x < 0) {
+            return -x;
+        } else {
+            return x;
+        }
+    }
+
+    /** Returns the product of x and y. */
+    function int multiply(int x, int y) {
+        var int sum, shiftedX, i;
+        var boolean neg;
+        
+        let sum = 0;
+        let shiftedX = x;
+        let i = 0;
+        
+        // Handle negative results
+        let neg = false;
+        if ((x < 0) & (y > 0)) {
+            let neg = true;
+            let shiftedX = -x;
+        }
+        if ((x > 0) & (y < 0)) {
+            let neg = true;
+            let y = -y;
+        }
+        if ((x < 0) & (y < 0)) {
+            let shiftedX = -x;
+            let y = -y;
+        }
+
+        // Shift-and-add algorithm
+        while (i < 16) {
+            if (Math.bit(y, i)) { // Check if i-th bit of y is 1
+                let sum = sum + shiftedX;
+            }
+            let shiftedX = shiftedX + shiftedX;
+            let i = i + 1;
+        }
+
+        if (neg) {
+            return -sum;
+        } else {
+            return sum;
+        }
+    }
+    
+    /** Helper function to check if the j-th bit of x is 1. */
+    function boolean bit(int x, int j) {
+        var int mask;
+        let mask = powersOfTwo[j];
+        if ((x & mask) = 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /** Returns the integer part of x / y. */
+    function int divide(int x, int y) {
+        var int q, absX, absY;
+        var boolean neg;
+
+        if (y = 0) {
+            do Sys.error(3); // Division by zero error
+        }
+
+        let absX = Math.abs(x);
+        let absY = Math.abs(y);
+        
+        if (absY > absX) {
+            return 0;
+        }
+
+        // Determine sign of the result
+        let neg = false;
+        if ((x < 0) & (y > 0)) {
+            let neg = true;
+        }
+        if ((x > 0) & (y < 0)) {
+            let neg = true;
+        }
+        
+        // Use multiply to find quotient
+        let q = Math.divide_helper(absX, absY);
+
+        if (neg) {
+            return -q;
+        } else {
+            return q;
+        }
+    }
+
+    /** Helper function for division. Assumes x and y are positive. */
+    function int divide_helper(int x, int y) {
+        var int q, result;
+        
+        if (y > x) {
+            return 0;
+        }
+
+        let q = Math.divide_helper(x, y + y);
+        let result = q + q; // This is q * 2
+
+        if ((x - (result * y)) < y) {
+            return result;
+        } else {
+            return result + 1;
+        }
+    }
+
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
+        var int y, j, testY, testYSquared;
+
+        if (x < 0) {
+            do Sys.error(2); // Square root of negative number error
+        }
+        
+        let y = 0;
+        let j = 7; // Max root is 181, fits in 8 bits (0-7)
+        
+        while (j > -1) {
+            let testY = y + powersOfTwo[j];
+            let testYSquared = Math.multiply(testY, testY);
+
+            // Corrected check for overflow
+            if ( (testYSquared <= x) & (testYSquared > 0) ) {
+                let y = testY;
+            }
+            let j = j - 1;
+        }
+        return y;
+    }
+
+    /** Returns the greater value. */
+    function int max(int a, int b) {
+        if (a > b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    /** Returns the smaller value. */
+    function int min(int a, int b) {
+        if (a < b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+}

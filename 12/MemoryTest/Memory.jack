@@ -1,0 +1,90 @@
+class Memory {
+    static Array ram;
+    static Array freeList;
+    static int heapBase, heapTop;
+
+    function void init() {
+        let ram = 0;
+        let heapBase = 2048;
+        let heapTop = 16383; 
+        
+        let freeList = heapBase;
+        let freeList[0] = heapTop - heapBase + 1; 
+        let freeList[1] = 0; 
+        
+        return;
+    }
+
+    function int peek(int address) {
+        return ram[address];
+    }
+
+    function void poke(int address, int value) {
+        let ram[address] = value;
+        return;
+    }
+
+    function int alloc(int size) {
+        var int reqLength, remainingLength;
+        var Array prev, current, newFreeBlock;
+        var boolean found;
+        
+        let reqLength = size + 1;
+        let prev = 0;
+        let current = freeList;
+        let found = false;
+        
+        // Use (~(current = 0)) and (~found)
+        while ((~(current = 0)) & (~found)) {
+            if (current[0] >= reqLength) {
+                let found = true;
+            } else {
+                let prev = current;
+                let current = current[1]; 
+            }
+        }
+        
+        // Use (~found)
+        if (~found) {
+            do Sys.error(4); 
+            return -1;
+        }
+        
+        let remainingLength = current[0] - reqLength;
+        
+        if (remainingLength < 2) {
+            if (prev = 0) {
+                let freeList = current[1];
+            } else {
+                let prev[1] = current[1]; 
+            }
+        }
+        else {
+            let newFreeBlock = current + reqLength;
+            
+            let newFreeBlock[0] = remainingLength;
+            let newFreeBlock[1] = current[1]; 
+            
+            if (prev = 0) {
+                let freeList = newFreeBlock;
+            } else {
+                let prev[1] = newFreeBlock;
+            }
+            
+            let current[0] = reqLength;
+        }
+        
+        return current + 1;
+    }
+
+    function void deAlloc(Array o) {
+        var Array block;
+        
+        let block = o - 1;
+        
+        let block[1] = freeList; 
+        let freeList = block;    
+        
+        return;
+    }    
+}

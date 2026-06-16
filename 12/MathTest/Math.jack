@@ -1,0 +1,158 @@
+
+class Math {
+    static Array powersOfTwo; // Stores 2^0, 2^1, ..., 2^15
+
+    function void init() {
+        var int i, val;
+        let i = 0;
+        let val = 1;
+        let powersOfTwo = Array.new(16);
+
+        while (i < 16) {
+            let powersOfTwo[i] = val;
+            let val = val + val;
+            let i = i + 1;
+        }
+        return;
+    }
+
+    function int abs(int x) {
+        if (x < 0) {
+            return -x;
+        } else {
+            return x;
+        }
+    }
+
+    function int multiply(int x, int y) {
+        var int sum, shiftedX, i;
+        var boolean neg;
+        
+        let sum = 0;
+        let shiftedX = x;
+        let i = 0;
+        
+        // Handle negative results
+        let neg = false;
+        if ((x < 0) & (y > 0)) {
+            let neg = true;
+            let shiftedX = -x;
+        }
+        if ((x > 0) & (y < 0)) {
+            let neg = true;
+            let y = -y;
+        }
+        if ((x < 0) & (y < 0)) {
+            let shiftedX = -x;
+            let y = -y;
+        }
+
+        while (i < 16) {
+            if (Math.bit(y, i)) { // Check if i-th bit of y is 1
+                let sum = sum + shiftedX;
+            }
+            let shiftedX = shiftedX + shiftedX;
+            let i = i + 1;
+        }
+
+        if (neg) {
+            return -sum;
+        } else {
+            return sum;
+        }
+    }
+    
+    function boolean bit(int x, int j) {
+        // (x & powersOfTwo[j]) will be non-zero (true) if the bit is set
+        return ~( (x & powersOfTwo[j]) = 0 );
+    }
+
+    function int divide(int x, int y) {
+        var int q, absX, absY;
+        var boolean neg;
+
+        if (y = 0) {
+            do Sys.error(3); // Division by zero error
+        }
+
+        let absX = Math.abs(x);
+        let absY = Math.abs(y);
+        
+        if (absY > absX) {
+            return 0;
+        }
+
+        let neg = false;
+        if ((x < 0) & (y > 0)) {
+            let neg = true;
+        }
+        if ((x > 0) & (y < 0)) {
+            let neg = true;
+        }
+        
+        let q = Math.divide_helper(absX, absY);
+
+        if (neg) {
+            return -q;
+        } else {
+            return q;
+        }
+    }
+
+    function int divide_helper(int x, int y) {
+        var int q, result;
+        
+        if (y > x) {
+            return 0;
+        }
+
+        let q = Math.divide_helper(x, y + y);
+        let result = q + q; // This is q * 2
+
+        if ((x - (result * y)) < y) {
+            return result;
+        } else {
+            return result + 1;
+        }
+    }
+
+
+    function int sqrt(int x) {
+        var int y, j, testY, testYSquared;
+
+        if (x < 0) {
+            do Sys.error(2); // Square root of negative number error
+        }
+        
+        let y = 0;
+        let j = 7; // Max root is 181, fits in 8 bits (0-7)
+       
+        while (j > -1) {
+            let testY = y + powersOfTwo[j];
+            let testYSquared = Math.multiply(testY, testY);
+
+            // Check for overflow (result is negative) or if it's too large
+            if ( (~(testYSquared > x)) & (testYSquared > 0) ) {
+                let y = testY;
+            }
+            let j = j - 1;
+        }
+        return y;
+    }
+
+    function int max(int a, int b) {
+        if (a > b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    function int min(int a, int b) {
+        if (a < b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+}
